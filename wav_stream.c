@@ -23,6 +23,7 @@
 #define WAV_STREAM_C
 #include "audio_stream.h"
 #include "wav_stream.h"
+#include "raop_client.h"
 #include "raop_play.h"
 #include "aexcl_lib.h"
 

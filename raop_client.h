@@ -18,7 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 #ifndef __RAOP_CLIENT_H_
-#define __RAOP_CLIENT_H
+#define __RAOP_CLIENT_H_
+
+#include <sys/time.h>
 
 #define BUFFER 32 //max frames airport can receive
 
@@ -47,7 +49,7 @@ int raopcl_pause_check(raopcl_t *p);
 int raopcl_aexbuf_time(raopcl_t *p, struct timeval *dtv);
 int raopcl_time_connect(void *args);
 int raopcl_sync(void *args);
-uint64_t calculate_timestamp(struct timeval *tv);
+unsigned long long calculate_timestamp(struct timeval *tv);
 int raopcl_set_content(raopcl_t *p, char* itemname, char* songartist, char* songalbum);
 
 
