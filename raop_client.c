@@ -50,8 +50,7 @@
 #define JACK_TYPE_ANALOG 0
 #define JACK_TYPE_DIGITAL 1
 
-#define VOLUME_DEF -30
-#define VOLUME_MIN -144 
+#define VOLUME_MIN -30 
 #define VOLUME_MAX 0
 
 typedef struct raopcl_data_t {
@@ -564,7 +563,7 @@ raopcl_t *raopcl_open()
 		return NULL;
 	}
 	memcpy(raopcld->nv,raopcld->iv,sizeof(raopcld->nv));
-	raopcld->volume=VOLUME_DEF;
+	raopcld->volume=0.0;
         aes_set_key(&raopcld->ctx, raopcld->key, 128);
 	// prepare a small silent data to send during pause period.
 	ds.u.mem.size=MINIMUM_SAMPLE_SIZE*4;
@@ -600,7 +599,9 @@ int raopcl_update_volume(raopcl_t *p, int vol)
 	if(!p) return -1;
 	
 	if(!raopcld->rtspcl) return -1;
-	raopcld->volume=VOLUME_MIN+(VOLUME_MAX-VOLUME_MIN)*vol/100;
+        if ( vol == 0 ) raopcld->volume = -144.0;
+        else
+	  raopcld->volume=VOLUME_MIN+(VOLUME_MAX-VOLUME_MIN)*vol/100;
 	sprintf(a, "volume: %d.000000\r\n", raopcld->volume);
 	return rtspcl_set_parameter(raopcld->rtspcl,a);
 }
