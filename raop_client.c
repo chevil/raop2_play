@@ -86,7 +86,7 @@ typedef struct raopcl_data_t {
 struct timeval starttime;
 struct timeval acttime;
 extern struct raopld_t *raopld;
-unsigned long long rtimestamp;
+unsigned long long rtimestamp=0;
 
 static unsigned int seq_number=0;
 int raopcl_update_progress(raopcl_data_t *p, int rtimestamp);
@@ -244,11 +244,14 @@ int raopcl_sync(void *args)
 		   data[0] = 128;	//RTP protocol ( 0x80 )
                 }
                 // calculate real timestamp in frames
-                gettimeofday(&acttime,NULL);
-                unsigned long long etimeinms = (unsigned long)((acttime.tv_sec-starttime.tv_sec)*1000+(acttime.tv_usec-starttime.tv_usec)/1000);
-                rtimestamp = etimeinms*auds_get_sample_rate(raopld->auds)/1000;
+                if ( starttime.tv_sec > 0 ) 
+                {
+                   gettimeofday(&acttime,NULL);
+                   unsigned long long etimeinms = (unsigned long)((acttime.tv_sec-starttime.tv_sec)*1000+(acttime.tv_usec-starttime.tv_usec)/1000);
+                   rtimestamp = etimeinms*auds_get_sample_rate(raopld->auds)/1000;
 
-                // INFMSG("sync ts : %llu te : %llu diff : %llu\n", rtimestamp, etimeinms, raopcld->timestamp-rtimestamp );
+                   // INFMSG("sync ts : %llu te : %llu diff : %llu\n", rtimestamp, etimeinms, raopcld->timestamp-rtimestamp );
+                }
 
 		data[1] = 212;  //payload type=84 + marker bit set = 212
 	        data[2] = (unsigned char)((seq_number & 0xFF00) >> 8); //seq_number
@@ -483,10 +486,11 @@ int raopcl_sample_remsize(raopcl_t *p)
 
 int raopcl_count_samples(raopcl_data_t *raopcld)
 {
-	if(raopcld->timestamp-rtimestamp>=BUFFER*MAX_SAMPLES_IN_CHUNK)
+	if(raopcld->timestamp>=rtimestamp+BUFFER*MAX_SAMPLES_IN_CHUNK)
 	{
            unsigned long long mdelay = MAX_SAMPLES_IN_CHUNK*1000*1000/auds_get_sample_rate(raopld->auds)+1;
 	   msleep(mdelay);	// sleep for 1 packet
+           // DBGMSG( "sleep : ts : %u rts : %llu\n", raopcld->timestamp, rtimestamp );
 	}
 	return 0;
 }
