@@ -22,7 +22,7 @@
 
 #include <sys/time.h>
 
-#define BUFFER 32 //max frames airport can receive
+#define BUFFER 512 //max frames airport can receive
 
 typedef struct raopcl_t {__u32 dummy;} raopcl_t;
 

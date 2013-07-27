@@ -555,9 +555,9 @@ int raopcl_send_sample(raopcl_t *p, __u8 *sample, int count)
 raopcl_t *raopcl_open()
 {
 	raopcl_data_t *raopcld;
-	__s16 sdata[MINIMUM_SAMPLE_SIZE*2];
-	data_source_t ds={.type=MEMORY};
-	__u8 *bp;
+	//__s16 sdata[MINIMUM_SAMPLE_SIZE*2];
+	//data_source_t ds={.type=MEMORY};
+	//__u8 *bp;
 
 	raopcld=malloc(sizeof(raopcl_data_t));
 	RAND_seed(raopcld,sizeof(raopcl_data_t));
