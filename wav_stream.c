@@ -113,8 +113,6 @@ int wav_open(auds_t *auds, char *fname)
            }
         }
 
-        DBGMSG( "after open : inf : %ld : inf2 : %ld\n", ftell( wav->inf ), ftell( wav->inf2 ) );
-
 	return 0;
  erexit:
 	wav_close(auds);
