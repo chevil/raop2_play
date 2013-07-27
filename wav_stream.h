@@ -40,7 +40,7 @@ typedef struct wav_t {
 /* public variables */
 /* private variables */
 #ifdef WAV_STREAM_C
-	FILE *inf;
+	FILE *inf, *inf2;
 	__u8 *buffer;
 	int subchunk2size;
 	int playedbytes;

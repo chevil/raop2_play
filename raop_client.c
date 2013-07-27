@@ -570,11 +570,11 @@ raopcl_t *raopcl_open()
 	raopcld->volume=0.0;
         aes_set_key(&raopcld->ctx, raopcld->key, 128);
 	// prepare a small silent data to send during pause period.
-	ds.u.mem.size=MINIMUM_SAMPLE_SIZE*4;
-	ds.u.mem.data=sdata;
-	memset(sdata,0,sizeof(sdata));
-	auds_write_pcm(NULL, raopcld->min_sdata, &bp, &raopcld->min_sdata_size,
-		       MINIMUM_SAMPLE_SIZE, &ds);
+	// ds.u.mem.size=MINIMUM_SAMPLE_SIZE*4;
+	// ds.u.mem.data=sdata;
+	// memset(sdata,0,sizeof(sdata));
+	// auds_write_pcm(NULL, raopcld->min_sdata, &bp, &raopcld->min_sdata_size,
+	// 	       MINIMUM_SAMPLE_SIZE, &ds);
 	return (raopcl_t *)raopcld;
 }
 

@@ -130,6 +130,7 @@ int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
            int bsize, data_source_t *ds)
 {
     __u8 one[4];
+    __u8 two[4];
     int count=0;
     int bpos=0;
     __u8 *bp=buffer;
@@ -156,89 +157,51 @@ int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
 
     while(1){
         switch(ds->type){
-            case DESCRIPTOR:
-                if(channels==1){
-                    if(read(ds->u.fd, one, 2)!=2) nodata=1;
-                    *((__s16*)one+1)=*((__s16*)one);
-                }else{
-                    if(read(ds->u.fd, one, 4)!=4) nodata=1;
-                }
-                break;
             case STREAM:
                 if(channels==1){
-                    if(fread(one,1,2,ds->u.inf)!=2) 
+                    if(fread(one,1,2,ds->inf)!=2) 
                     {
                        ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
                        nodata=1;
                     }
                     *((__s16*)one+1)=*((__s16*)one);
+                    memcpy( &two[0], &one[0], 4 );
                 }else{
-                  int curbytes = ftell( ds->u.inf );
-
-                       // seek file ahead
                        if ( csync<0.0 )
                        {
-                          int nbbytes = abs(csync)*sizeof(short)*auds->channels*auds->sample_rate;
-                          // DBGMSG( "seeking to %d from current\n", nbbytes );
-                          if ( fseek( ds->u.inf, nbbytes, SEEK_CUR ) < 0 )
+                          if(fread(one,1,4,ds->inf)!=4) 
                           {
-                             ERRMSG( "fseek ahead failed : reason : %s", strerror( errno ) );
-                             nodata=1;
+                            ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
+                            nodata=1;
+                          }
+                          if(fread(two,1,4,ds->inf2)!=4) 
+                          {
+                            ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
+                            nodata=1;
                           }
                        }
-                       if(fread(one,1,2,ds->u.inf)!=2) 
-                       {
-                         ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
-                         nodata=1;
-                       }
-                       // get back to normal reading position
-                       if ( csync<0.0 )
-                       {
-                          // DBGMSG( "seeking back to %d\n", curbytes+2 );
-                          if ( fseek( ds->u.inf, curbytes+2, SEEK_SET ) < 0 )
-                          {
-                             ERRMSG( "fseek backwards failed : reason : %s", strerror( errno ) );
-                             nodata=1;
-                          }
-                       }
-                       // seek file ahead
                        if ( csync>0.0 )
                        {
-                          int nbbytes = csync*sizeof(short)*auds->channels*auds->sample_rate;
-                          // DBGMSG( "seeking to %d from current\n", nbbytes );
-                          if ( fseek( ds->u.inf, nbbytes, SEEK_CUR ) < 0 )
+                          if(fread(one,1,4,ds->inf2)!=4) 
                           {
-                             ERRMSG( "fseek ahead failed : reason : %s", strerror( errno ) );
-                             nodata=1;
+                            ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
+                            nodata=1;
+                          }
+                          if(fread(two,1,4,ds->inf)!=4) 
+                          {
+                            ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
+                            nodata=1;
                           }
                        }
-                       if(fread(one+2,1,2,ds->u.inf)!=2) 
+                       if ( csync==0.0 )
                        {
-                         ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
-                         nodata=1;
-                       }
-                       // get back to normal reading position
-                       if ( csync>0.0 )
-                       {
-                          // DBGMSG( "seeking back to %d\n", curbytes+4 );
-                          if ( fseek( ds->u.inf, curbytes+4, SEEK_SET ) < 0 )
+                          if(fread(one,1,4,ds->inf)!=4) 
                           {
-                             ERRMSG( "fseek backwards failed : reason : %s", strerror( errno ) );
-                             nodata=1;
+                            ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
+                            nodata=1;
                           }
+                          memcpy( &two[0], &one[0], 4 );
                        }
-                }
-                break;
-
-           case MEMORY:
-                if(channels==1){
-                    if(ds->u.mem.size<=count*2) nodata=1;
-                    *((__s16*)one)=ds->u.mem.data[count];
-                    *((__s16*)one+1)=*((__s16*)one);
-                }else{
-                    if(ds->u.mem.size<=count*4) nodata=1;
-                    *((__s16*)one)=ds->u.mem.data[count*2];
-                    *((__s16*)one+1)=ds->u.mem.data[count*2+1];
                 }
                 break;
 
@@ -251,12 +214,12 @@ int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
 
         // apply balance here
         *((__s16*)one)=*((__s16*)one)*((1.0-balance/100.0)); 
-        *((__s16*)one+1)=*((__s16*)one+1)*(balance/100.0); 
+        *((__s16*)two+1)=*((__s16*)two+1)*(balance/100.0); 
 
         bits_write(&bp,one[1],8,&bpos);
         bits_write(&bp,one[0],8,&bpos);
-        bits_write(&bp,one[3],8,&bpos);
-        bits_write(&bp,one[2],8,&bpos);
+        bits_write(&bp,two[3],8,&bpos);
+        bits_write(&bp,two[2],8,&bpos);
         if(++count==bsize) break;
     }
     if(!count) 

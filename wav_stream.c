@@ -29,6 +29,7 @@
 
 extern long startinms;
 extern long endinms;
+extern double csync;
 
 static int read_wave_header(wav_t *wav, int *sample_rate, int *channels);
 
@@ -45,6 +46,11 @@ int wav_open(auds_t *auds, char *fname)
 	auds->stream=(void *)wav;
 	wav->inf=fopen(fname,"r");
 	if(!wav->inf) goto erexit;
+        if ( csync!=0 )
+        {
+	   wav->inf2=fopen(fname,"r");
+	   if(!wav->inf2) goto erexit;
+        }
 	if(read_wave_header(wav, &auds->sample_rate, &auds->channels)==-1) goto erexit;
 	auds->chunk_size=aud_clac_chunk_size(auds->sample_rate);
 	wav->buffer=(__u8 *)malloc(MAX_SAMPLES_IN_CHUNK*4+16);
@@ -67,7 +73,7 @@ int wav_open(auds_t *auds, char *fname)
         {
            long nbbytes = sizeof(short)*auds->channels*auds->sample_rate;
            nbbytes *= startinms/1000;
-           DBGMSG( "Seeking to %ld bytes\n", nbbytes );
+           DBGMSG( "inf : Seeking to %ld bytes\n", nbbytes );
 
            if ( fseek( wav->inf, nbbytes, SEEK_CUR ) < 0 )
            {
@@ -75,11 +81,39 @@ int wav_open(auds_t *auds, char *fname)
               wav_close(auds);
               return -1;
            }
+
+           if ( csync!=0 )
+           {
+              nbbytes = sizeof(short)*auds->channels*auds->sample_rate;
+              int mcsync = (int)(csync*1000.0);
+              nbbytes *= (startinms+mcsync)/1000;
+              DBGMSG( "inf2 : seeking to %ld from current\n", nbbytes );
+
+              if ( fseek( wav->inf2, nbbytes, SEEK_CUR ) < 0 )
+              {
+                 ERRMSG( "Couldn't seek specified start time : %s", strerror( errno ) );
+                 wav_close(auds);
+                 return -1;
+              }
+           }
         }
         else
         {
-	   fseek(wav->inf,sizeof(wave_header_t),SEEK_SET);
+           if ( csync!=0 )
+           {
+              int nbbytes = sizeof(short)*auds->channels*auds->sample_rate;
+              int mcsync = (int)(csync*1000.0);
+              nbbytes *= mcsync/1000;
+              DBGMSG( "inf2 : seeking to %d from current\n", nbbytes );
+              if ( fseek( wav->inf2, nbbytes, SEEK_CUR ) < 0 )
+              {
+                 ERRMSG( "fseek ahead failed : reason : %s", strerror( errno ) );
+                 goto erexit;
+              }
+           }
         }
+
+        DBGMSG( "after open : inf : %ld : inf2 : %ld\n", ftell( wav->inf ), ftell( wav->inf2 ) );
 
 	return 0;
  erexit:
@@ -92,6 +126,7 @@ int wav_close(auds_t *auds)
 	wav_t *wav=(wav_t *)auds->stream;
 	if(!wav) return -1;
 	if(wav->inf) fclose(wav->inf);
+	if(wav->inf2) fclose(wav->inf2);
 	if(wav->buffer) free(wav->buffer);
 	free(wav);
 	auds->stream=NULL;
@@ -124,10 +159,19 @@ int wav_get_next_sample(auds_t *auds, __u8 **data, int *size)
 {
 	wav_t *wav=(wav_t *)auds->stream;
 	int bsize=MAX_SAMPLES_IN_CHUNK;
-	data_source_t ds={.type=STREAM, .u.inf=wav->inf};
+	data_source_t ds={.type=STREAM, .inf=wav->inf, .inf2=wav->inf2 };
+
 	if(!bsize) return -1;
 	wav->playedbytes+=bsize;
-        int posinbytes=ftell(wav->inf);
+        int posinbytes;
+        if (csync>0.0)
+        {
+           posinbytes=ftell(wav->inf2);
+        }
+        else
+        {
+           posinbytes=ftell(wav->inf);
+        }
         if ( posinbytes < 0 )
         {
            ERRMSG( "Couldn't get file position\n" );

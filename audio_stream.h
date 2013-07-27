@@ -51,11 +51,8 @@ typedef struct mem_source_t {
 }mem_source_t;
 typedef struct data_source_t {
 	data_source_type_t type;
-	union{
-		int fd;
-		FILE *inf;
-		mem_source_t mem;
-	}u;
+	FILE *inf;
+	FILE *inf2;
 }data_source_t;
 
 #define DEFAULT_SAMPLE_RATE 44100
