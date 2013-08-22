@@ -12,7 +12,7 @@ was failing with newer airport express.
 
 * to compile it :
 
-./configure 
+make clean
 make 
 make install
 
