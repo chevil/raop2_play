@@ -117,7 +117,7 @@ static int rsa_encrypt(__u8 *text, int len, __u8 *res)
 	return size;
 }
 
-static int encrypt(raopcl_data_t *raopcld, __u8 *data, int size)
+static int raop_encrypt(raopcl_data_t *raopcld, __u8 *data, int size)
 {
 	__u8 *buf;
 	//__u8 tmp[16];
@@ -537,7 +537,7 @@ int raopcl_send_sample(raopcl_t *p, __u8 *sample, int count)
 	if(raopcld->encrypt)
 	{
                 // with newer airport express, please don't use encryption ( -e )
-		encrypt(raopcld, raopcld->data+header_size+audio_header_size, count);
+		raop_encrypt(raopcld, raopcld->data+header_size+audio_header_size, count);
 	}
 	raopcld->wblk_remsize=count+header_size+audio_header_size;
 	raopcld->wblk_wsize=0;
