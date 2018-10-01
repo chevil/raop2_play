@@ -20,6 +20,7 @@
 #ifndef __RAOP_CLIENT_H_
 #define __RAOP_CLIENT_H_
 
+#include <stdint.h>
 #include <sys/time.h>
 
 #define BUFFER 512 //max frames airport can receive
@@ -49,7 +50,7 @@ int raopcl_pause_check(raopcl_t *p);
 int raopcl_aexbuf_time(raopcl_t *p, struct timeval *dtv);
 int raopcl_time_connect(void *args);
 int raopcl_sync(void *args);
-unsigned long long calculate_timestamp(struct timeval *tv);
+uint64_t calculate_timestamp(struct timeval *tv);
 int raopcl_set_content(raopcl_t *p, char* itemname, char* songartist, char* songalbum);
 
 
