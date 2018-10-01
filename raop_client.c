@@ -108,10 +108,18 @@ static int rsa_encrypt(__u8 *text, int len, __u8 *res)
         char e[] = "AQAB";
 
 	rsa=RSA_new();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	size=base64_decode(n,modules);
 	rsa->n=BN_bin2bn(modules,size,NULL);
 	size=base64_decode(e,exponent);
 	rsa->e=BN_bin2bn(exponent,size,NULL);
+#else
+	size=base64_decode(n,modules);
+	BIGNUM *bn_n=BN_bin2bn(modules,size,NULL);
+	size=base64_decode(e,exponent);
+	BIGNUM *bn_e=BN_bin2bn(exponent,size,NULL);
+	RSA_set0_key(rsa, bn_n, bn_e, NULL);
+#endif
 	size=RSA_public_encrypt(len, text, res, rsa, RSA_PKCS1_OAEP_PADDING);
 	RSA_free(rsa);
 	return size;
