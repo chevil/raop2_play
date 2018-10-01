@@ -18,6 +18,7 @@
  *****************************************************************************/
 
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -85,7 +86,7 @@ int get_tcp_connect(int sd, struct sockaddr_in dest_addr)
 }
 
 
-int get_tcp_connect_by_host(int sd, char *host, __u16 destport)
+int get_tcp_connect_by_host(int sd, char *host, uint16_t destport)
 {
 	struct sockaddr_in addr;
 	struct hostent *h;

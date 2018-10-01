@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
+#include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <openssl/err.h>
@@ -32,7 +33,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include <asm/types.h>
 #include <limits.h>
 #include "aexcl_lib.h"
 #include "rtsp_client.h"
@@ -55,11 +55,11 @@
 
 typedef struct raopcl_data_t {
 	rtspcl_t *rtspcl;
-	__u8 iv[16]; // initialization vector for aes-cbc
-	__u8 nv[16]; // next vector for aes-cbc
-	__u8 key[16]; // key for aes-cbc
+	uint8_t iv[16]; // initialization vector for aes-cbc
+	uint8_t nv[16]; // next vector for aes-cbc
+	uint8_t key[16]; // key for aes-cbc
 	char *addr; // target host address
-	__u16 rtsp_port;
+	uint16_t rtsp_port;
 	int ajstatus;
 	int ajtype;
 	int volume;
@@ -70,8 +70,8 @@ typedef struct raopcl_data_t {
 	int wblk_remsize;
 	pause_state_t pause;
 	aes_context ctx;
-	__u8 *data;
-	__u8 min_sdata[MINIMUM_SAMPLE_SIZE*4+16];
+	uint8_t *data;
+	uint8_t min_sdata[MINIMUM_SAMPLE_SIZE*4+16];
 	int min_sdata_size;
 	time_t paused_time;
 	int size_in_aex;
@@ -91,11 +91,11 @@ unsigned long long rtimestamp=0;
 static unsigned int seq_number=0;
 int raopcl_update_progress(raopcl_data_t *p, int rtimestamp);
 
-static int rsa_encrypt(__u8 *text, int len, __u8 *res)
+static int rsa_encrypt(uint8_t *text, int len, uint8_t *res)
 {
 	RSA *rsa;
-	__u8 modules[256];
-	__u8 exponent[8];
+	uint8_t modules[256];
+	uint8_t exponent[8];
 	int size;
 
         char n[] =
@@ -117,10 +117,10 @@ static int rsa_encrypt(__u8 *text, int len, __u8 *res)
 	return size;
 }
 
-static int encrypt(raopcl_data_t *raopcld, __u8 *data, int size)
+static int encrypt(raopcl_data_t *raopcld, uint8_t *data, int size)
 {
-	__u8 *buf;
-	//__u8 tmp[16];
+	uint8_t *buf;
+	//uint8_t tmp[16];
 	int i=0,j;
 	memcpy(raopcld->nv,raopcld->iv,16);
 	while(i+16<=size){
@@ -158,7 +158,7 @@ static int encrypt(raopcl_data_t *raopcld, __u8 *data, int size)
 static int fd_event_callback(void *p, int flags)
 {
 	int i;
-	__u8 buf[256];
+	uint8_t buf[256];
 	raopcl_data_t *raopcld;
 	int rsize;
 	if(!p) return -1;
@@ -205,7 +205,7 @@ static int fd_event_callback(void *p, int flags)
 	return 0;
 }
 
-static int raopcl_connectcontrol(raopcl_data_t *raopcld, __u16 myport)
+static int raopcl_connectcontrol(raopcl_data_t *raopcld, uint16_t myport)
 {
 	if((raopcld->cfd=open_udp_socket(NULL, &myport))==-1) return -1;
         DBGMSG( "opened control port : %d\n", myport );
@@ -293,7 +293,7 @@ int raopcl_sync(void *args)
 	return 0;
 }
 
-static int raopcl_connecttime(raopcl_data_t *raopcld, __u16 myport)
+static int raopcl_connecttime(raopcl_data_t *raopcld, uint16_t myport)
 {
 	if((raopcld->tfd=open_udp_socket(NULL, &myport))==-1) return -1;
         DBGMSG( "opened timing port : %d\n", myport );
@@ -320,7 +320,7 @@ static int raopcl_connecttime(raopcl_data_t *raopcld, __u16 myport)
 int raopcl_time_connect(void *args)
 {
 	raopcl_data_t* raopcld = (raopcl_data_t*)args;
-	__u8 buf[256];
+	uint8_t buf[256];
 	int j, i;
 	struct timeval ctv;
 
@@ -410,7 +410,7 @@ static int raopcl_stream_connect(raopcl_data_t *raopcld)
 {
 	raopcl_connecttime(raopcld, rtspcl_get_timing_port(raopcld->rtspcl));
 	raopcl_connectcontrol(raopcld, rtspcl_get_control_port(raopcld->rtspcl));
-	__u16 myport=0;
+	uint16_t myport=0;
 
 	if((raopcld->sfd=open_udp_socket(NULL, &myport))==-1) return -1;
         DBGMSG( "opened stream port : %d\n", myport );
@@ -495,7 +495,7 @@ int raopcl_count_samples(raopcl_data_t *raopcld)
 	return 0;
 }
 
-int raopcl_send_sample(raopcl_t *p, __u8 *sample, int count)
+int raopcl_send_sample(raopcl_t *p, uint8_t *sample, int count)
 {
 	static int begin=1;
 	int rval=-1;
@@ -555,9 +555,9 @@ int raopcl_send_sample(raopcl_t *p, __u8 *sample, int count)
 raopcl_t *raopcl_open()
 {
 	raopcl_data_t *raopcld;
-	//__s16 sdata[MINIMUM_SAMPLE_SIZE*2];
+	//int16_t sdata[MINIMUM_SAMPLE_SIZE*2];
 	//data_source_t ds={.type=MEMORY};
-	//__u8 *bp;
+	//uint8_t *bp;
 
 	raopcld=malloc(sizeof(raopcl_data_t));
 	RAND_seed(raopcld,sizeof(raopcl_data_t));
@@ -610,9 +610,9 @@ int raopcl_update_volume(raopcl_t *p, int vol)
 	return rtspcl_set_parameter(raopcld->rtspcl,a);
 }
 
-int raopcl_connect(raopcl_t *p, char *host,__u16 destport, int encrypt, int volume)
+int raopcl_connect(raopcl_t *p, char *host, uint16_t destport, int encrypt, int volume)
 {
-	__u8 buf[4+8+16];
+	uint8_t buf[4+8+16];
 	char sid[16];
 	char sci[24];
 	char *sac=NULL,*key=NULL,*iv=NULL;
@@ -621,18 +621,18 @@ int raopcl_connect(raopcl_t *p, char *host,__u16 destport, int encrypt, int volu
 	key_data_t *setup_kd=NULL;
 	char *aj, *token, *pc;
 	const char delimiters[] = ";";
-	__u8 rsakey[512];
+	uint8_t rsakey[512];
 	int i;
 	raopcl_data_t *raopcld;
 	if(!p) return -1;
 
 	raopcld=(raopcl_data_t *)p;
 	RAND_bytes(buf, sizeof(buf));
-	sprintf(sid, "%d%hu", 3420, *((__u16*)buf));
+	sprintf(sid, "%d%hu", 3420, *((uint16_t*)buf));
 	raopcld->ssrc = (unsigned long)(((rand()) << 16) + (rand())) % 4294967295ULL;
         raopcld->timestamp=0;
 	raopcld->encrypt = encrypt;
-	sprintf(sci, "%08x%08x",*((__u32*)(buf+4)),*((__u32*)(buf+8)));
+	sprintf(sci, "%08x%08x",*((uint32_t*)(buf+4)),*((uint32_t*)(buf+8)));
 	base64_encode(buf+12,16,&sac);
 	if(!(raopcld->rtspcl=rtspcl_open())) goto erexit;
 	if(rtspcl_set_useragent(raopcld->rtspcl,"iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)")) goto erexit;
