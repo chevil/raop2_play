@@ -20,20 +20,22 @@
 #ifndef __WAV_STREAM_H_
 #define __WAV_STREAM_H_
 
+#include <stdint.h>
+
 typedef struct wave_header_t{
 	char charChunkID[4];
-	__u32 ChunkSize;
+	uint32_t ChunkSize;
 	char Format[4];
 	char Subchunk1ID[4];
-	__u32 Subchunk1Size;
-	__u16 AudioFormat;
-	__u16 NumChannels;
-	__u32 SampleRate;
-	__u32 ByteRate;
-	__u16 BlockAlign;
-	__u16 BitsPerSample;
+	uint32_t Subchunk1Size;
+	uint16_t AudioFormat;
+	uint16_t NumChannels;
+	uint32_t SampleRate;
+	uint32_t ByteRate;
+	uint16_t BlockAlign;
+	uint16_t BitsPerSample;
 	char Subchunk2ID[4];
-	__u32 Subchunk2Size;
+	uint32_t Subchunk2Size;
 } __attribute__ ((packed)) wave_header_t;
 
 typedef struct wav_t {
@@ -41,18 +43,18 @@ typedef struct wav_t {
 /* private variables */
 #ifdef WAV_STREAM_C
 	FILE *inf, *inf2;
-	__u8 *buffer;
+	uint8_t *buffer;
 	int subchunk2size;
 	int playedbytes;
 #else
-	__u32 dummy;
+	uint32_t dummy;
 #endif
 } wav_t;
 
 int wav_open(auds_t *auds, char *fname);
 int wav_close(auds_t *auds);
-int wav_get_top_sample(auds_t *auds, __u8 **data, int *size);
-int wav_get_next_sample(auds_t *auds, __u8 **data, int *size);
+int wav_get_top_sample(auds_t *auds, uint8_t **data, int *size);
+int wav_get_next_sample(auds_t *auds, uint8_t **data, int *size);
 int wav_get_duration();
 int wav_get_position();
 int wav_get_length();

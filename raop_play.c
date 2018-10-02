@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
+#include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
 #include <sys/select.h>
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
 	int ret;
 	int volume=100;
 	int encrypt=1;
-	__u8 *buf;
+	uint8_t *buf;
 	int iact=0;
 	struct sigaction act;
 
@@ -300,4 +301,3 @@ int clear_fd_event(int fd)
 	}
 	return -1;
 }
-

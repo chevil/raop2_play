@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
-#include <asm/types.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -76,7 +76,7 @@ int auds_close(auds_t *auds)
     return 0;
 }
 
-int auds_get_top_sample(auds_t *auds, __u8 **data, int *size)
+int auds_get_top_sample(auds_t *auds, uint8_t **data, int *size)
 {
     switch(auds->data_type){
     case AUD_TYPE_WAV:
@@ -88,7 +88,7 @@ int auds_get_top_sample(auds_t *auds, __u8 **data, int *size)
     return -1;
 }
 
-int auds_get_next_sample(auds_t *auds, __u8 **data, int *size)
+int auds_get_next_sample(auds_t *auds, uint8_t **data, int *size)
 {
     int rval;
     auds_t *lauds=auds;
@@ -126,14 +126,14 @@ int auds_sigchld(auds_t *auds, siginfo_t *siginfo)
 }
 
 
-int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
+int auds_write_pcm(auds_t *auds, uint8_t *buffer, uint8_t **data, int *size,
            int bsize, data_source_t *ds)
 {
-    __u8 one[4];
-    __u8 two[4];
+    uint8_t one[4];
+    uint8_t two[4];
     int count=0;
     int bpos=0;
-    __u8 *bp=buffer;
+    uint8_t *bp=buffer;
     int i,nodata=0;
     int channels=2;
 
@@ -164,7 +164,7 @@ int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
                        ERRMSG( "fread failed : reason : %s\n", strerror(errno) );
                        nodata=1;
                     }
-                    *((__s16*)one+1)=*((__s16*)one);
+                    *((int16_t*)one+1)=*((int16_t*)one);
                     memcpy( &two[0], &one[0], 4 );
                 }else{
                        if ( csync<0.0 )
@@ -213,8 +213,8 @@ int auds_write_pcm(auds_t *auds, __u8 *buffer, __u8 **data, int *size,
         if(nodata) break;
 
         // apply balance here
-        *((__s16*)one)=*((__s16*)one)*((1.0-balance/100.0)); 
-        *((__s16*)two+1)=*((__s16*)two+1)*(balance/100.0); 
+        *((int16_t*)one)=*((int16_t*)one)*((1.0-balance/100.0));
+        *((int16_t*)two+1)=*((int16_t*)two+1)*(balance/100.0);
 
         bits_write(&bp,one[1],8,&bpos);
         bits_write(&bp,one[0],8,&bpos);
