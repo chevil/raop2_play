@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
-#include <asm/types.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #define WAV_STREAM_C
@@ -53,7 +53,7 @@ int wav_open(auds_t *auds, char *fname)
         }
 	if(read_wave_header(wav, &auds->sample_rate, &auds->channels)==-1) goto erexit;
 	auds->chunk_size=aud_clac_chunk_size(auds->sample_rate);
-	wav->buffer=(__u8 *)malloc(MAX_SAMPLES_IN_CHUNK*4+16);
+	wav->buffer=(uint8_t *)malloc(MAX_SAMPLES_IN_CHUNK*4+16);
 	if(!wav->buffer) goto erexit;
 
         if(stat(fname,&finfo)<0)
@@ -131,7 +131,7 @@ int wav_close(auds_t *auds)
 	return 0;
 }
 
-int wav_get_top_sample(auds_t *auds, __u8 **data, int *size)
+int wav_get_top_sample(auds_t *auds, uint8_t **data, int *size)
 {
 	wav_t *wav=(wav_t *)auds->stream;
 	wav->playedbytes=0;
@@ -153,7 +153,7 @@ int wav_get_length()
         return flength;
 }
 
-int wav_get_next_sample(auds_t *auds, __u8 **data, int *size)
+int wav_get_next_sample(auds_t *auds, uint8_t **data, int *size)
 {
 	wav_t *wav=(wav_t *)auds->stream;
 	int bsize=MAX_SAMPLES_IN_CHUNK;
@@ -226,5 +226,3 @@ static int read_wave_header(wav_t *wav, int *sample_rate, int *channels)
 	wav->subchunk2size=head.Subchunk2Size;
 	return 0;
 }
-
-

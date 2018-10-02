@@ -20,11 +20,12 @@
 #ifndef __RAOP_CLIENT_H_
 #define __RAOP_CLIENT_H_
 
+#include <stdint.h>
 #include <sys/time.h>
 
 #define BUFFER 512 //max frames airport can receive
 
-typedef struct raopcl_t {__u32 dummy;} raopcl_t;
+typedef struct raopcl_t {uint32_t dummy;} raopcl_t;
 
 typedef enum pause_state_t{
 	NO_PAUSE=0,
@@ -34,9 +35,9 @@ typedef enum pause_state_t{
 
 raopcl_t *raopcl_open();
 int raopcl_close(raopcl_t *p);
-int raopcl_connect(raopcl_t *p, char *host,__u16 destport, int encrypt, int volume);
+int raopcl_connect(raopcl_t *p, char *host, uint16_t destport, int encrypt, int volume);
 int raopcl_disconnect(raopcl_t *p);
-int raopcl_send_sample(raopcl_t *p, __u8 *sample, int count);
+int raopcl_send_sample(raopcl_t *p, uint8_t *sample, int count);
 int raopcl_update_volume(raopcl_t *p, int vol);
 int raopcl_start_sync(raopcl_t *p);
 int raopcl_sample_remsize(raopcl_t *p);
@@ -49,7 +50,7 @@ int raopcl_pause_check(raopcl_t *p);
 int raopcl_aexbuf_time(raopcl_t *p, struct timeval *dtv);
 int raopcl_time_connect(void *args);
 int raopcl_sync(void *args);
-unsigned long long calculate_timestamp(struct timeval *tv);
+uint64_t calculate_timestamp(struct timeval *tv);
 int raopcl_set_content(raopcl_t *p, char* itemname, char* songartist, char* songalbum);
 
 
